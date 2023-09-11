@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拉链动画</title>
+    <style>
+        /* CSS 样式用于创建拉链和动画效果 */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        #zipper-container {
+            position: relative;
+            width: 90%;
+            height: 90%;
+        }
+
+        #zipper {
+            background-color: #333;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            bottom: 42%;
+            transition: height 0.5s;
+        }
+
+        #slider {
+            position: absolute;
+            bottom: 44%;
+            left: 270px;
+            transform: translateX(-50%);
+            cursor: grab;
+            z-index: 4;
+            opacity: 100%;
+            transition: opacity 0.1s;
+            scale: 2;
+        }
+
+        #card {
+            background-color: #fff;
+            width: 100%;
+            height: 100%;
+            bottom: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+        }
+
+        #unzip-card {
+            height: 0;
+            width: 100%;
+            background-color: #111;
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transition: height 0.3s, top 0.3s;
+            overflow: hidden;
+            display: flex;
+            justify-content: center; /* 水平居中 */
+            align-items: center; /* 垂直居中 */
+        }
+
+        #card-content {
+            padding: 20px;
+            left: 0;
+            top: 0;
+        }
+
+        #zipper-svg {
+            bottom: 45.9%;
+            left: 42%;
+            z-index: 1;
+            position: absolute;
+            scale: 5;
+        }
+
+        #card1 {
+            z-index: 3;
+            left: 0;
+            top: 0;
+            position: absolute;
+        }
+
+        #card2 {
+            z-index: 2;
+            left: 0;
+            top: 0;
+            position: absolute;
+        }
+
+        #card3 {
+            z-index: 4; 
+            left: 0;
+            top: 0;
+            position: absolute;
+        }
+
+        .card-content {
+            color: #fff;
+            user-select: none;
+            font-size: 100px;
+        }
+
+    </style>
+</head>
+<body>zz
+    <div id="zipper-container">
+        <div id="zipper">
+            <div id="unzip-card">
+                <div id="card1" class="card-content">
+                    吧唧
+                </div>
+                <div id="card2" class="card-content">
+                    小立牌 / 钥匙扣
+                </div>
+                <div id="card3" class="card-content">
+                    大立牌
+                </div>
+            </div>
+        </div>
+        <svg id="slider" width="95" height="109">
+            <image xlink:href="./slider.svg" width="100%" height="100%" />
+        </svg>
+        <svg id="zipper-svg" >
+            <image xlink:href="./zipper.svg" width="100%" height="100%" />
+        </svg>
+    </div>
+
+    <script>
+        const zipper = document.getElementById('zipper');
+        const slider = document.getElementById('slider');
+        const zipper_svg = document.getElementById('zipper-svg');
+        const unzipCard = document.getElementById('unzip-card');
+        const cardProbabilities = [0.7, 0.27, 0.03]; // Define probabilities for each card
+        const cards = document.querySelectorAll('.card-content'); // Get all card elements
+
+        let isDragging = false;
+        let first = true;
+
+        slider.addEventListener('mousedown', () => {
+            isDragging = true;
+            slider.style.cursor = 'grabbing';
+            done = false;
+        });
+
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const zipperRect = zipper.getBoundingClientRect();
+                const sliderRect = slider.getBoundingClientRect();
+                const sliderX = e.clientX - zipperRect.left - sliderRect.width / 2; // Center of the slider
+
+                const maxWidth = zipper.offsetWidth;
+
+                if (sliderX >= 270 && sliderX <= maxWidth - 100) {
+                    slider.style.left = `${sliderX}px`;
+                }
+        
+                const zipperCenter = zipperRect.width / 2;
+
+                if (sliderX >= maxWidth - 200) {
+                    const selectedCardIndex = selectCardBasedOnProbability();
+                    displaySelectedCard(selectedCardIndex);
+                    unzipCard.style.height = `100%`;
+                    unzipCard.style.top = `0%`;
+                    slider.style.opacity = '0%';
+                    zipper_svg.style.opacity = '0%';
+                }
+                else {
+                    unzipCard.style.height = `0%`;
+                    unzipCard.style.top = `50%`;
+                }
+            }
+        });
+
+        function selectCardBasedOnProbability() {
+            const randomValue = Math.random();
+            let cumulativeProbability = 0;
+
+            for (let i = 0; i < cardProbabilities.length; i++) {
+                cumulativeProbability += cardProbabilities[i];
+                if (randomValue <= cumulativeProbability) {
+                    return i; // Return the index of the selected card
+                }
+            }
+            return cardProbabilities.length - 1;
+        }
+
+        function displaySelectedCard(cardIndex) {
+            if(first) {
+                    cards.forEach((card, index) => {
+                    if (index === cardIndex) {
+                        card.style.opacity = '100%';
+                    } else {
+                        card.style.opacity = '0%';
+                    }
+                });
+                first = false;
+            }
+            
+        }
+
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                slider.style.cursor = 'grab';   
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拉链动画</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            background-color: #ffffff;
+        }
+
+        #zipper-container {
+            position: relative;
+            width: 90%;
+            height: 90%;
+        }
+
+        #zipper {
+            background-color: #0f0f0f;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            bottom: 42%;
+            transition: height 0.5s;
+        }
+
+        #slider {
+            position: absolute;
+            bottom: 38%;
+            left: 170px;
+            transform: translateX(-50%);
+            cursor: grab;
+            z-index: 4;
+            opacity: 100%;
+            transition: opacity 0.1s;
+            scale: 1.8;
+        }
+
+        #card {
+            background-color: #fff;
+            width: 100%;
+            height: 100%;
+            bottom: 50%;
+            display: flex;
+            justify-content: center;
+            text-align: center;
+            align-items: center;
+            font-size: 24px;
+        }
+
+        #unzip-card {
+            height: 0;
+            width: 100%;
+            background-color: #727272;
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transition: height 0.3s, top 0.3s;
+            overflow: hidden;
+            display: flex;
+            justify-content: center; 
+            align-items: center; 
+            display: table-cell;
+        }
+
+        .card-content {
+            width: 100%;
+            text-align: center;
+            text-align: center;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #zipper-svg {
+            bottom: 40%;
+            left: 35%;
+            z-index: 1;
+            position: absolute;
+            scale: 3;
+        }
+
+        .card-content img{
+            top: 10%;
+            left: 10%;
+            user-select: none;
+            scale: 0.9;
+            margin: 0 auto;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="zipper-container">
+        <div id="zipper">
+            <div id="unzip-card">
+                <div id="card1" class="card-content">
+                    <img src="./2s.png" />
+                </div>
+                <div id="card2" class="card-content">
+                    <img src="./3s.png" />
+                </div>
+                <div id="card3" class="card-content">
+                    <img src="./4s.png" />
+                </div>
+                <div id="card4" class="card-content">
+                    <img src="./5s.png" />
+                </div>
+                <div id="card5" class="card-content">
+                    <img src="./6s.png" />
+                </div>
+            </div>
+        </div>
+        <svg id="slider" width="95" height="109">
+            <image xlink:href="./slider.svg" width="100%" height="100%" />
+        </svg>
+        <svg id="zipper-svg" >
+            <image xlink:href="./zipper.svg" width="100%" height="100%" />
+        </svg>
+    </div>
+
+    <script>
+        const zipper = document.getElementById('zipper');
+        const slider = document.getElementById('slider');
+        const zipper_svg = document.getElementById('zipper-svg');
+        const unzipCard = document.getElementById('unzip-card');
+        const cardProbabilities = [0.756, 0.14, 0.07, 0.03, 0.004]; 
+        const cards = document.querySelectorAll('.card-content'); 
+
+        let isDragging = false;
+        let first = true;
+
+        document.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            slider.style.cursor = 'grabbing';
+
+        });
+
+
+        document.addEventListener('touchmove', (e) => {
+            if (isDragging && first) {
+                const zipperRect = zipper.getBoundingClientRect();
+                const sliderRect = slider.getBoundingClientRect();
+                const sliderX = e.touches[0].clientX - zipperRect.left - sliderRect.width / 2;
+
+                const maxWidth = zipper.offsetWidth;
+
+                if (sliderX >= 170 && sliderX <= maxWidth - 100) {
+                    slider.style.left = `${sliderX}px`;
+                }
+
+                const zipperCenter = zipperRect.width / 2;
+
+                if (sliderX >= maxWidth - 100) {
+                    const selectedCardIndex = selectCardBasedOnProbability();
+                    displaySelectedCard(selectedCardIndex);
+                    unzipCard.style.height = `100%`;
+                    unzipCard.style.top = `0%`;
+                    slider.style.display = 'none';
+                    zipper_svg.style.display = 'none';
+                    first = false;
+                } else {
+                    unzipCard.style.height = `0%`;
+                    unzipCard.style.top = `50%`;
+                }
+            }
+        });
+
+        function selectCardBasedOnProbability() {
+            if(first) {
+                const randomValue = Math.random();
+            let cumulativeProbability = 0;
+            console.log(randomValue);
+
+            for (let i = 0; i < cardProbabilities.length; i++) {
+                cumulativeProbability += cardProbabilities[i];
+                if (randomValue <= cumulativeProbability) {
+                    console.log(i);
+                    return i;
+                }
+            }
+            console.log(cardProbabilities.length - 1);
+            return cardProbabilities.length - 1;
+            first = false;
+            }
+        }
+
+        function displaySelectedCard(cardIndex) {
+            cards.forEach((card, index) => {
+                    if (index === cardIndex) {
+                        card.style.opacity = '100%';
+                    } else {
+                        card.style.opacity = '0%';
+                    }
+                });
+            
+        }
+
+
+        document.addEventListener('touchend', () => {
+            if (isDragging) {
+                isDragging = false;
+                slider.style.cursor = 'grab';   
+            }
+        });
+    </script>
+</body>
+</html>
